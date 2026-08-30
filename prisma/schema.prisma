@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+model GuildSettings {
+  guildId            String   @id
+  automodEnabled     Boolean  @default(true)
+  logChannelId       String?
+  warnChannelId      String?
+  timeoutMild        Int      @default(60000)
+  timeoutMedium      Int      @default(300000)
+  timeoutSevere      Int      @default(1800000)
+  timeoutExtreme     Int      @default(7200000)
+  warnExpireDays     Int      @default(30)
+  maxMentions        Int      @default(5)
+  spamEnabled        Boolean  @default(true)
+  linkEnabled        Boolean  @default(true)
+  mentionEnabled     Boolean  @default(true)
+  capsEnabled        Boolean  @default(true)
+  allowedDomains     String   @default("[]")
+  blockedDomains     String   @default("[]")
+  escalationEnabled  Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+model User {
+  id               String    @id @default(cuid())
+  userId           String
+  guildId          String
+  warns            Int       @default(0)
+  points           Int       @default(0)
+  timeouts         Int       @default(0)
+  messagesDeleted  Int       @default(0)
+  lastViolation    DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  @@unique([userId, guildId])
+  @@index([guildId])
+}
+model Warning {
+  id          String    @id @default(cuid())
+  guildId     String
+  userId      String
+  moderatorId String
+  reason      String
+  severity    String?
+  points      Int       @default(1)
+  detectedWord String?
+  messageId   String?
+  channelId   String?
+  createdAt   DateTime  @default(now())
+  expiresAt   DateTime?
+  @@index([guildId, userId])
+  @@index([expiresAt])
+}
+model FilterWord {
+  id        String   @id @default(cuid())
+  guildId   String?
+  word      String
+  severity  String
+  language  String   @default("mixed")
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  @@unique([word, guildId])
+  @@index([guildId])
+  @@index([severity])
+}
+model WhitelistWord {
+  id        String   @id @default(cuid())
+  guildId   String?
+  word      String
+  createdAt DateTime @default(now())
+  @@unique([word, guildId])
+}
+model ModLog {
+  id          String   @id @default(cuid())
+  guildId     String
+  moderatorId String
+  targetId    String?
+  action      String
+  reason      String?
+  meta        String?
+  createdAt   DateTime @default(now())
+  @@index([guildId])
+}
